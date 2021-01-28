@@ -12,6 +12,7 @@ class serverlessPluginIfElse {
             "before:remove:remove": this.applyConditions.bind(this),
             "before:offline:start:init": this.applyConditions.bind(this),
             "before:offline:start": this.applyConditions.bind(this),
+            "before:openapi:generate:serverless": this.applyConditions.bind(this),
         };
         this.pluginName = "serverless-plugin-ifelse";
     }
@@ -51,6 +52,24 @@ class serverlessPluginIfElse {
                     catch (e) {
                         this.evaluateErrorLog(item.ExcludeIf[exludeKey], e);
                     }
+                });
+            }
+
+            if (item.IterExcludeIf) {
+                Object.keys(item.IterExcludeIf).forEach((itemType) => {
+                    Object.keys(this.serverless.service[itemType]).forEach((obj) => {
+                        var expr = "this.serverless.service." + item.IterExcludeIf[itemType]
+                        var realItem = itemType + "." + obj
+                        expr = expr.replace(/<item>/g, realItem)
+                        try {
+                            if (eval(expr)) {
+                                this.conditionMatchLog(expr, true);
+                                this.changeKey(realItem);
+                            }
+                        }
+                        catch (e) {
+                        }
+                    });
                 });
             }
         });
